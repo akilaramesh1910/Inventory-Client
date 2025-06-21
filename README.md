@@ -1,70 +1,102 @@
-# Getting Started with Create React App
+# Simple Inventory Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A minimal, single-role inventory management web application built for small businesses. This system provides core functionalities for product and stock management, a Point of Sale (POS) system, order tracking, and barcode generation.
 
-## Available Scripts
+## ✨ Features
 
-In the project directory, you can run:
+This application is a Minimum Viable Product (MVP) packed with essential features:
 
-### `npm start`
+*   **Authentication**: Secure admin login using email/password with JWT-based sessions.
+*   **Product Management**:
+    *   Add, edit, and delete products.
+    *   View a comprehensive list of all products in either a grid or table layout.
+    *   Search products by name, SKU, or category.
+*   **Stock Management**:
+    *   Add or subtract stock quantities manually.
+    *   View current stock levels at a glance.
+    *   Stock automatically decreases when an order is processed through the POS system.
+*   **Stock Counting**:
+    *   Perform manual stock recounts to ensure accuracy.
+    *   Adjust inventory levels based on physical counts.
+*   **Point of Sale (POS)**:
+    *   A user-friendly interface to search and add products to a cart.
+    *   Adjust item quantities in the cart.
+    *   View an order summary and process checkouts.
+*   **Order Management**:
+    *   Create new orders manually.
+    *   View a history of past orders with detailed information.
+*   **Barcode Generation**:
+    *   Automatically generate a Code 128 barcode for each product based on its SKU.
+    *   Preview barcodes directly on the product list page.
+    *   Print selected barcodes for labeling.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🛠️ Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The project is built with a modern, robust technology stack:
 
-### `npm test`
+*   **Frontend**: **React.js** (with **Next.js** framework)
+*   **Backend**: **Node.js** with **Express.js**
+*   **Database**: **MongoDB** (using **Mongoose** ODM)
+*   **Authentication**: JSON Web Tokens (JWT)
+*   **Barcode Generation**: `bwip-js` (backend)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 Getting Started
 
-### `npm run build`
+Follow these instructions to get a local copy of the project up and running for development and testing purposes.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+*   Node.js - v23
+*   npm install
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Installation & Setup
 
-### `npm run eject`
+1.  **Clone the repository:**
+    ```sh
+    git clone <repository_url>
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2.  **Setup the Backend:**
+    *   Navigate to the backend directory:
+        ```sh
+        cd folder_name
+        ```
+    *   Install dependencies:
+        ```sh
+        npm install
+        ```
+    *   Create a `.env` file in the `backend` root and add your configuration:
+        ```env
+        MONGO_URI=your_mongodb_connection_string
+        JWT_SECRET=your_jwt_secret_key
+        PORT=8000
+        ```
+    *   Start the backend server:
+        ```sh
+        npm start
+        ```
+    The backend server will be running on `http://localhost:8000`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3.  **Setup the Frontend:**
+    *   In a new terminal, navigate to the client directory:
+        ```sh
+        cd folder_name
+        ```
+    *   Install dependencies:
+        ```sh
+        node version v23
+        npm install
+        ```
+    *   Start the frontend development server:
+        ```sh
+        npm run dev
+        ```
+    The frontend application will be available at `http://localhost:3000`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4.  **Access the Application:**
+    *   Open your browser and go to `http://localhost:3000`.
+    *   Use the demo credentials on the login page to get started:
+    Example:
+        *   **Email**: `abc@gmail.com`
+        *   **Password**: `abc123`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
