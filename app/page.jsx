@@ -186,7 +186,7 @@ export default function Dashboard() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
               gap: "24px",
               marginBottom: "32px",
             }}

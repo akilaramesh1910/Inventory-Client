@@ -159,7 +159,7 @@ export default function ProductsPage() {
   const totalProducts = useMemo(() => (Array.isArray(products) ? products : []).length, [products]);
   const totalValue = useMemo(() => {
     const currentProducts = Array.isArray(products) ? products : [];
-    return currentProducts.reduce((sum, product) => sum + (product.price || 0) * (product.stock || 1), 0);
+    return currentProducts.reduce((sum, product) => sum + (product.price || 0) * (product.stock || 0), 0);
   }, [products]);
   const lowStockCount = useMemo(() => {
     const currentProducts = Array.isArray(products) ? products : [];
@@ -177,13 +177,13 @@ export default function ProductsPage() {
   }
 
   const getStockBadgeStyle = (stock) => {
-    if (stock > 50) {
+    if (stock >= 80) {
       return {
         background: "rgba(34, 197, 94, 0.2)",
         color: "#22c55e",
         border: "1px solid #22c55e",
       }
-    } else if (stock > 20) {
+    } else if (stock > 0) {
       return {
         background: "rgba(251, 191, 36, 0.2)",
         color: "#fbbf24",
