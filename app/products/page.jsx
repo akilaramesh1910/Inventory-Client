@@ -22,7 +22,7 @@ export default function ProductsPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedProductForView, setSelectedProductForView] = useState(null);
 
-  const API_BASE = process.env.REACT_APP_API_BASE || 'https://inventory-server-4-nrpb.onrender.com'
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api"
 
   const PREDEFINED_PRODUCT_CATEGORIES = [
     "Grocery",

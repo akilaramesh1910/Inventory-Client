@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [focusedField, setFocusedField] = useState(null)
   const router = useRouter()
 
-  const API_BASE =  process.env.REACT_APP_API_BASE || 'https://inventory-server-4-nrpb.onrender.com'
+  const API_BASE =  process.env.REACT_APP_API_BASE || "http://localhost:8000/api"
 
   console.log("API_BASE", API_BASE)
 

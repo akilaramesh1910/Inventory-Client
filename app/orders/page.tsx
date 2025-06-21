@@ -44,7 +44,7 @@ export default function OrdersPage() {
 
   const router = useRouter()
 
-  const API_BASE = process.env.REACT_APP_API_BASE || 'https://inventory-server-4-nrpb.onrender.com'
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api"
 
   useEffect(() => {
     fetchOrders()
