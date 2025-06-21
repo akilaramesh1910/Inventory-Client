@@ -16,7 +16,7 @@ const PREDEFINED_PRODUCT_CATEGORIES = [
   "Toys & Games",
 ];
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api";
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://inventory-server-4-nrpb.onrender.com';
 
 export default function EditProductPage() {
   const router = useRouter();

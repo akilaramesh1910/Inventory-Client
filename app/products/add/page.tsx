@@ -26,7 +26,7 @@ export default function AddProductPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null); 
 
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api";
+  const API_BASE = process.env.REACT_APP_API_BASE || 'https://inventory-server-4-nrpb.onrender.com';
 
 
   useEffect(() => {
