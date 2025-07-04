@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import Layout from "./components/Layout"
 import { useRouter } from "next/navigation"
-import { useSnackbar } from "../../context/SnackbarContext";
+import { useSnackbar } from "../context/SnackbarContext";
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState([])
