@@ -16,7 +16,7 @@ const PREDEFINED_PRODUCT_CATEGORIES = [
   "Toys & Games",
 ];
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api";
 
 export default function EditProductPage() {
   const router = useRouter();

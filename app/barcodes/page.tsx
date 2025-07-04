@@ -37,7 +37,7 @@ export default function BarcodesPage() {
     fetchProducts()
   }, [])
 
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api"
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
 
   const fetchProducts = async () => {
     setLoading(true);

@@ -32,7 +32,7 @@ export default function POSPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter()
 
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api";
 
 
   useEffect(() => {

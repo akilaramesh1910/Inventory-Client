@@ -18,7 +18,7 @@ export default function Layout({ children }) {
   const [userError, setUserError] = useState(null)
   const router = useRouter()
   const pathname = usePathname()
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000/api"
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
 
   const navItems = [
     { icon: BarChart3, label: "Dashboard", route: "/" },
