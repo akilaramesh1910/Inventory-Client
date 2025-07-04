@@ -1,6 +1,7 @@
 import './globals.css'
 import { ReactNode } from 'react'
 import { Metadata } from 'next'
+import { SnackbarProvider } from '../context/SnackbarContext'
 
 export const metadata: Metadata = {
   title: 'Inventory Management System',
@@ -16,7 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SnackbarProvider>{children}</SnackbarProvider>
+      </body>
     </html>
   )
 }

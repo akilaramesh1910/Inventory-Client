@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Layout from "../../../components/Layout"; 
+import Layout from "../../../components/Layout";
+import { useSnackbar } from "../../../../context/SnackbarContext";
 import { ArrowLeft, Save } from "lucide-react";
 
 const PREDEFINED_PRODUCT_CATEGORIES = [
@@ -22,6 +23,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id;
+  const { showSnackbar } = useSnackbar();
 
   const [productData, setProductData] = useState({
     name: "",
@@ -35,22 +37,19 @@ export default function EditProductPage() {
   const [originalProductName, setOriginalProductName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (!productId) {
-      setError("Product ID not found in URL.");
+      showSnackbar("Product ID not found in URL.", "error");
       setLoading(false);
       return;
     }
 
     const fetchProductDetails = async () => {
       setLoading(true);
-      setError(null);
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        setError("Authorization token not found. Please log in.");
+        showSnackbar("Authorization token not found. Please log in.", "error");
         setLoading(false);
         router.push("/login");
         return;
@@ -62,7 +61,7 @@ export default function EditProductPage() {
         });
 
         if (res.status === 401 || res.status === 403) {
-          setError("Unauthorized to fetch product details. Please log in again.");
+          showSnackbar("Unauthorized to fetch product details. Please log in again.", "error");
           localStorage.removeItem("accessToken");
           router.push("/login");
           setLoading(false);
@@ -89,18 +88,18 @@ export default function EditProductPage() {
           });
           setOriginalProductName(productToEdit.name || "this product");
         } else {
-          setError(`Product with ID ${productId} not found. It may have been deleted.`);
+          showSnackbar(`Product with ID ${productId} not found. It may have been deleted.`, "error");
         }
       } catch (err) {
         console.error("Failed to fetch product:", err);
-        setError(err.message || "An unexpected error occurred while fetching product details.");
+        showSnackbar(err.message || "An unexpected error occurred while fetching product details.", "error");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProductDetails();
-  }, [productId, router]);
+  }, [productId, router, showSnackbar]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,19 +107,15 @@ export default function EditProductPage() {
       ...prevData,
       [name]: value,
     }));
-    setSuccessMessage("");
-    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
-    setSuccessMessage("");
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       setSaving(false);
       router.push("/login");
       return;
@@ -143,7 +138,7 @@ export default function EditProductPage() {
       });
 
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized to update product. Please log in again.");
+        showSnackbar("Unauthorized to update product. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         setSaving(false);
@@ -156,7 +151,7 @@ export default function EditProductPage() {
       }
 
       const updatedProduct = await res.json();
-      setSuccessMessage("Product updated successfully!");
+      showSnackbar("Product updated successfully!", "success");
       setProductData({
         name: updatedProduct.name || "",
         sku: updatedProduct.sku || "",
@@ -172,7 +167,7 @@ export default function EditProductPage() {
       }, 1000);
     } catch (err) {
       console.error("Failed to update product:", err);
-      setError(err.message || "An unexpected error occurred while saving.");
+      showSnackbar(err.message || "An unexpected error occurred while saving.", "error");
     } finally {
       setSaving(false);
     }
@@ -212,13 +207,6 @@ export default function EditProductPage() {
         <p style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "18px", marginBottom: "32px", textAlign: "center" }}>
           Update details for <span style={{ fontWeight: "bold", color: "white" }}>{originalProductName}</span>.
         </p>
-
-        {error && (
-          <div style={{ background: "rgba(239, 68, 68, 0.2)", border: "1px solid #ef4444", color: "#ef4444", padding: "12px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>{error}</div>
-        )}
-        {successMessage && (
-          <div style={{ background: "rgba(34, 197, 94, 0.2)", border: "1px solid #22c55e", color: "#22c55e", padding: "12px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>{successMessage}</div>
-        )}
 
         {(!productData.name && !loading && !error) && (
              <div style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "20px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>

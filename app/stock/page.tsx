@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useSnackbar } from "../../context/SnackbarContext"
 import { AlertTriangle, Plus, Minus, Search, TrendingUp, Package } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Layout from "../components/Layout"
@@ -26,8 +27,8 @@ export default function StockPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [adjustmentMode, setAdjustmentMode] = useState<string | null>(null)
   const [adjustmentValue, setAdjustmentValue] = useState("")
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
+  const { showSnackbar } = useSnackbar()
   const router = useRouter()
 
   useEffect(() => {
@@ -38,11 +39,10 @@ export default function StockPage() {
 
   const fetchStock = async () => {
     setLoading(true);
-    setError(null);
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
       setLoading(false);
+      showSnackbar("Authorization token not found. Please log in.", "error");
       router.push("/login");
       return;
     }
@@ -54,7 +54,7 @@ export default function StockPage() {
         },
       });
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
@@ -67,7 +67,7 @@ export default function StockPage() {
       setStockData(data)
     } catch (err: any) {
       console.error("Error fetching stock:", err)
-      setError(err.message || "An error occurred while fetching stock data.");
+      showSnackbar(err.message || "An error occurred while fetching stock data.", "error");
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export default function StockPage() {
     if (!value || value <= 0) return
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       router.push("/login");
       return;
     }
@@ -93,16 +93,17 @@ export default function StockPage() {
         body: JSON.stringify({ productId, quantity: value }),
       })
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
       }
       if (!res.ok) throw new Error(`Failed to adjust stock: ${type}`);
+      showSnackbar(`Stock ${type === 'add' ? 'added' : 'subtracted'} successfully.`, "success");
       fetchStock()
     } catch (err: any) {
       console.error("Error adjusting stock:", err);
-      setError(err.message || "Failed to adjust stock.");
+      showSnackbar(err.message || "Failed to adjust stock.", "error");
     }
 
     setAdjustmentMode(null)
@@ -112,13 +113,13 @@ export default function StockPage() {
   const handleSetStock = async (productId: string) => {
     const value = parseInt(adjustmentValue);
     if (isNaN(value) || value < 0) {
-      setError("Please enter a valid non-negative quantity to set.");
+      showSnackbar("Please enter a valid non-negative quantity.", "warning");
       setAdjustmentValue("");
       return;
     }
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       router.push("/login");
       return;
     }
@@ -133,7 +134,7 @@ export default function StockPage() {
         body: JSON.stringify({ productId, newQuantity: value }),
       });
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
@@ -142,10 +143,11 @@ export default function StockPage() {
         const errorData = await res.json().catch(() => ({ message: "Failed to set stock quantity" }));
         throw new Error(errorData.message || "Failed to set stock quantity");
       }
+      showSnackbar("Stock quantity set successfully.", "success");
       fetchStock(); 
     } catch (err: any) {
       console.error("Error setting stock quantity:", err);
-      setError(err.message || "Failed to set stock quantity.");
+      showSnackbar(err.message || "Failed to set stock quantity.", "error");
     }
 
     setAdjustmentMode(null);
@@ -157,7 +159,7 @@ export default function StockPage() {
     if (value < 0 || isNaN(value)) return
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       router.push("/login");
       return;
     }
@@ -172,16 +174,17 @@ export default function StockPage() {
         body: JSON.stringify({ productId, countedQuantity: value }),
       })
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
       }
       if (!res.ok) throw new Error("Failed to recount stock");
+      showSnackbar("Stock recounted successfully.", "success");
       fetchStock()
     } catch (err: any) {
       console.error("Error during recount:", err);
-      setError(err.message || "Failed during stock recount.");
+      showSnackbar(err.message || "Failed during stock recount.", "error");
     }
 
     setAdjustmentMode(null)
@@ -321,10 +324,6 @@ export default function StockPage() {
                 </p>
               </div>
             </motion.div>
-
-            {error && (
-              <div style={{ background: "rgba(239, 68, 68, 0.2)", border: "1px solid #ef4444", color: "#ef4444", padding: "12px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>{error}</div>
-            )}
 
             <div
               style={{

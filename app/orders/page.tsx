@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Search, Eye, Calendar, DollarSign, Package, TrendingUp, Plus, X, Trash2 } from "lucide-react"
-import Snackbar from "../../components/ui/snackbar"
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Eye, Calendar, DollarSign, Package, TrendingUp, Plus, X, Trash2 } from "lucide-react";
+import { useSnackbar } from "../../context/SnackbarContext";
 import { useRouter } from "next/navigation"
 import Layout from "../components/Layout"
 
@@ -38,10 +38,7 @@ export default function OrdersPage() {
   const [newOrderItems, setNewOrderItems] = useState<OrderItem[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [availableProducts, setAvailableProducts] = useState<Product[]>([])
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"error" | "success" | "info" | "warning">("error")
-
+  const { showSnackbar } = useSnackbar();
   const router = useRouter()
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
@@ -64,15 +61,11 @@ export default function OrdersPage() {
             setAvailableProducts(data)
           } else {
             console.error("Failed to fetch products for order creation");
-            setSnackbarMessage("Could not load product list for new order.");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true);
+            showSnackbar("Could not load product list for new order.", "error");
           }
         } catch (err: any) {
           console.error("Error fetching products:", err);
-          setSnackbarMessage(err.message || "Error loading product list.");
-          setSnackbarSeverity("error");
-          setSnackbarOpen(true);
+          showSnackbar(err.message || "Error loading product list.", "error");
         }
       }
     }
@@ -85,9 +78,7 @@ export default function OrdersPage() {
     const token = localStorage.getItem("accessToken")
 
     if (!token) {
-      setSnackbarMessage("No authorization token found. Please log in.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar("No authorization token found. Please log in.", "error");
       setLoading(false)
       router.push("/login")
       return
@@ -103,9 +94,7 @@ export default function OrdersPage() {
       })
 
       if (res.status === 401 || res.status === 403) {
-        setSnackbarMessage("Unauthorized or Forbidden. Please log in again.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+        showSnackbar("Unauthorized or Forbidden. Please log in again.", "error");
         localStorage.removeItem("accessToken") 
         router.push("/login")
         return
@@ -113,9 +102,7 @@ export default function OrdersPage() {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ message: "Failed to fetch orders" }))
         const errorMessage = errorData.message || `HTTP error ${res.status}`;
-        setSnackbarMessage(errorMessage);
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+        showSnackbar(errorMessage, "error");
         throw new Error(errorMessage)
       }
       const data = await res.json()
@@ -130,18 +117,14 @@ export default function OrdersPage() {
   async function createOrder() {
     const token = localStorage.getItem("accessToken")
     if (!token) {
-      setSnackbarMessage("No authorization token found. Please log in.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar("No authorization token found. Please log in.", "error");
       router.push("/login")
       return
     }
 
     for (const item of newOrderItems) {
       if (item.quantity === "" || item.quantity < 1) {
-        setSnackbarMessage("Please enter a valid quantity for the order item's.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+        showSnackbar("Please enter a valid quantity for all order items.", "warning");
         return;
       }
     }
@@ -157,27 +140,21 @@ export default function OrdersPage() {
     })
 
     if (res.status === 401 || res.status === 403) {
-      setSnackbarMessage("Unauthorized or Forbidden. Please log in again.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar("Unauthorized or Forbidden. Please log in again.", "error");
       localStorage.removeItem("accessToken")
       router.push("/login")
       return
     }
 
     if (res.ok) {
-      setSnackbarMessage("Order created successfully!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+      showSnackbar("Order created successfully!", "success");
       setShowCreateModal(false)
       setNewOrderItems([])
       fetchOrders() 
     } else {
       const errorData = await res.json().catch(() => ({ message: "Failed to create order" }))
       const detailedError = errorData.error || errorData.message || `HTTP error ${res.status}`;
-      setSnackbarMessage(detailedError);
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar(detailedError, "error");
       setError(detailedError) 
     }
   }
@@ -253,13 +230,6 @@ export default function OrdersPage() {
   return (
     <Layout>
       <>
-        <Snackbar
-          message={snackbarMessage}
-          open={snackbarOpen}
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          autoHideDuration={6000}
-        />
         <div
           style={{
             minHeight: "100vh",

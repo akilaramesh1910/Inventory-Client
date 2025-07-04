@@ -11,12 +11,12 @@ import {
   LogOut,
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
+import { useSnackbar } from "../../context/SnackbarContext"
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false) 
-  // eslint-disable-next-line no-unused-vars
-  const [userError, setUserError] = useState(null)
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   const pathname = usePathname()
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
 
@@ -40,11 +40,15 @@ export default function Layout({ children }) {
           }
         });
       }
+      showSnackbar("Logged out successfully. Redirecting...", "success");
     } catch (error) {
       console.error("Error calling backend logout:", error);
+      showSnackbar("Could not contact server, but logging out locally.", "warning");
     } finally {
       localStorage.removeItem("accessToken");
-      router.push("/login");
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
     }
   };
 

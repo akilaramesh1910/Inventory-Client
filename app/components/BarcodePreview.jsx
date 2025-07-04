@@ -2,23 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { QrCode } from "lucide-react";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 export default function BarcodePreview({ sku, apiBaseUrl }) {
   const [image, setImage] = useState(null);
-  const [previewError, setPreviewError] = useState(null);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     let isMounted = true;
     const fetchBarcode = async () => {
       if (!sku || !apiBaseUrl) {
-        setPreviewError("SKU or API URL missing.");
+        showSnackbar("SKU or API URL missing for preview.", "warning");
         return;
       }
-      setPreviewError(null);
       setImage(null);
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        if (isMounted) setPreviewError("Login required.");
+        if (isMounted) showSnackbar("Login required for preview.", "warning");
         return;
       }
 
@@ -33,7 +33,7 @@ export default function BarcodePreview({ sku, apiBaseUrl }) {
         });
         if (!isMounted) return;
         if (res.status === 401 || res.status === 403) {
-          setPreviewError("Unauthorized.");
+          showSnackbar("Unauthorized to generate preview.", "error");
           throw new Error("Unauthorized to generate barcode preview.");
         }
         if (!res.ok) throw new Error("Failed to load barcode preview.");
@@ -44,7 +44,7 @@ export default function BarcodePreview({ sku, apiBaseUrl }) {
         }
       } catch (err) {
         console.error("Error loading barcode for SKU:", sku, err);
-        if (isMounted && !previewError) setPreviewError(err.message || "Preview failed.");
+        if (isMounted) showSnackbar(err.message || "Preview failed.", "error");
       }
     };
 
@@ -56,16 +56,7 @@ export default function BarcodePreview({ sku, apiBaseUrl }) {
         URL.revokeObjectURL(image);
       }
     };
-  }, [sku, apiBaseUrl]);
-
-  if (previewError) {
-    return (
-      <div style={{ padding: "10px", border: "1px dashed rgba(239, 68, 68, 0.5)", borderRadius: "4px", textAlign: "center", minHeight: "50px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",  margin: "0 auto" }}>
-        <QrCode style={{ width: "18px", height: "18px", margin: "0 auto 4px auto", color: "rgba(239, 68, 68, 0.8)" }} />
-        <p style={{ fontSize: "10px", color: "rgba(239, 68, 68, 0.8)" }}>{previewError}</p>
-      </div>
-    );
-  }
+  }, [sku, apiBaseUrl, showSnackbar]);
 
   if (image) {
     return (

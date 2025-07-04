@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Search, QrCode, Printer, BarChart3, Filter } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSnackbar } from "../../context/SnackbarContext"
 import Layout from "../components/Layout"
 
 interface Product {
@@ -31,7 +32,7 @@ export default function BarcodesPage() {
   const [selectedProductsForPrint, setSelectedProductsForPrint] = useState<string[]>([])
   const router = useRouter()
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     fetchProducts()
@@ -41,10 +42,9 @@ export default function BarcodesPage() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    setError(null);
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       setLoading(false);
       router.push("/login");
       return;
@@ -55,7 +55,7 @@ export default function BarcodesPage() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         setLoading(false);
@@ -65,7 +65,7 @@ export default function BarcodesPage() {
       if (!res.ok) {
         const errorText = await res.text().catch(() => `HTTP error ${res.status}`);
         console.error(`Failed to fetch products: ${res.status} ${res.statusText}`, errorText);
-        setError(`Failed to fetch products: ${res.statusText || errorText}`);
+        showSnackbar(`Failed to fetch products: ${res.statusText || errorText}`, "error");
         setProducts([]); 
         setLoading(false);
         return;
@@ -76,12 +76,12 @@ export default function BarcodesPage() {
       } else {
         const errorMessage = "Fetched product data is not an array.";
         console.error(errorMessage, data);
-        setError(errorMessage);
+        showSnackbar(errorMessage, "error");
         setProducts([]);
       }
     } catch (err: any) {
       console.error("Error fetching products:", err);
-      setError(err.message || "An unexpected error occurred while fetching products.");
+      showSnackbar(err.message || "An unexpected error occurred while fetching products.", "error");
       setProducts([]); 
     } finally {
       setLoading(false);
@@ -106,13 +106,14 @@ export default function BarcodesPage() {
   const categories = PREDEFINED_PRODUCT_CATEGORIES; 
 
   const printBarcodes = async () => {
-    if (selectedProductsForPrint.length === 0) return;
+    if (selectedProductsForPrint.length === 0) {
+      showSnackbar("Please select at least one product to print.", "warning");
+      return;
+    }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      const msg = "Authorization token not found. Please log in before printing.";
-      setError(msg);
-      alert(msg); 
+      showSnackbar("Authorization token not found. Please log in before printing.", "error");
       router.push("/login");
       return;
     }
@@ -129,7 +130,7 @@ export default function BarcodesPage() {
 
     const printDocument = iframe.contentWindow?.document;
     if (!printDocument) {
-      alert("Could not create a print frame.");
+      showSnackbar("Could not create a print frame.", "error");
       document.body.removeChild(iframe);
       return;
     }
@@ -231,7 +232,7 @@ export default function BarcodesPage() {
       })
       .catch(error => {
         console.error("Error preparing barcodes for printing:", error);
-        alert("An error occurred while preparing barcodes for printing.");
+        showSnackbar("An error occurred while preparing barcodes for printing.", "error");
         if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
         }
@@ -406,10 +407,6 @@ export default function BarcodesPage() {
               <p style={{ fontSize: "28px", fontWeight: "bold", color: "white" }}>{safeProducts.length}</p>
               <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", marginTop: "4px" }}>In inventory</p>
             </motion.div>
-
-            {error && (
-              <div style={{ background: "rgba(239, 68, 68, 0.2)", border: "1px solid #ef4444", color: "#ef4444", padding: "12px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>{error}</div>
-            )}
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}

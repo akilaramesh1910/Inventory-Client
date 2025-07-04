@@ -13,27 +13,29 @@ import {
 } from "lucide-react"
 import Layout from "./components/Layout"
 import { useRouter } from "next/navigation"
+import { useSnackbar } from "../../context/SnackbarContext";
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState([])
   const [recentActivities, setRecentActivities] = useState([])
   const [topProducts, setTopProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const router = useRouter() 
+  const { showSnackbar } = useSnackbar();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true)
-      setError(null)
       const token = localStorage.getItem("accessToken")
 
       if (!token) {
-        setError("No authorization token found. Please log in.")
+        showSnackbar("No authorization token found. Please log in.", "error")
         setLoading(false)
-        router.push("/login") 
+        setTimeout(() => {
+          router.push("/login")
+        }, 1500)
         return
       }
 
@@ -51,9 +53,11 @@ export default function Dashboard() {
 
         for (const res of [statsRes, activitiesRes, topProductsRes]) {
           if (res.status === 401 || res.status === 403) {
-            setError("Unauthorized or Forbidden. Please log in again.")
+            showSnackbar("Unauthorized or Forbidden. Please log in again.", "error")
             localStorage.removeItem("accessToken") 
-            router.push("/login")
+            setTimeout(() => {
+              router.push("/login")
+            }, 1500)
             return
           }
           if (!res.ok) {
@@ -73,7 +77,7 @@ export default function Dashboard() {
 
       } catch (err) {
         console.error("Error fetching dashboard data:", err)
-        setError(err.message)
+        showSnackbar(err.message, "error")
         setStatsData([])
         setRecentActivities([])
         setTopProducts([])
@@ -82,7 +86,7 @@ export default function Dashboard() {
       }
     }
     fetchDashboardData()
-  }, [API_BASE, router]) 
+  }, [API_BASE, router, showSnackbar]) 
 
   const getStatIconColor = (color) => {
     const colors = {
@@ -171,18 +175,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {loading && (
-            <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.7)" }}>
-              Loading dashboard data...
-            </div>
-          )}
-          {error && (
-            <div style={{ textAlign: "center", padding: "40px", color: "#ef4444" }}>
-              Error loading data: {error}. Please ensure the backend is running and API endpoints are correct.
-              (Expected: /dashboard/stats, /dashboard/activities, /dashboard/topproducts)
-            </div>
-          )}
-
           <div
             style={{
               display: "grid",
@@ -191,7 +183,13 @@ export default function Dashboard() {
               marginBottom: "32px",
             }}
           >
-            {!loading && !error && statsData.map((stat, index) => (
+            {loading && (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.7)" }}>
+                Loading dashboard data...
+              </div>
+            )}
+
+            {!loading && statsData.map((stat, index) => (
               <div
                 key={stat.title}
                 style={{
@@ -322,7 +320,7 @@ export default function Dashboard() {
               </div>
               <div style={{ padding: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {!loading && !error && topProducts.map((product, index) => (
+                  {!loading && topProducts.map((product, index) => (
                     <div
                       key={product.name}
                       style={{
@@ -411,7 +409,7 @@ export default function Dashboard() {
               </div>
               <div style={{ padding: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {!loading && !error && recentActivities.map((activity, index) => (
+                  {!loading && recentActivities.map((activity, index) => (
                     <div
                       key={index}
                       style={{

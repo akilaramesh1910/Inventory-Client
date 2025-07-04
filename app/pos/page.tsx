@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Minus, Plus, Search, ShoppingCart, Trash2, CreditCard } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion";
+import { Minus, Plus, Search, ShoppingCart, Trash2, CreditCard } from "lucide-react";
+import { useSnackbar } from "../../context/SnackbarContext";
 import { useRouter } from "next/navigation"
 import Layout from "../components/Layout"
 
@@ -29,8 +30,8 @@ export default function POSPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(false) 
   const [productsLoading, setProductsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter()
+  const { showSnackbar } = useSnackbar();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api";
 
@@ -41,10 +42,9 @@ export default function POSPage() {
 
   const fetchProducts = async () => {
     setProductsLoading(true);
-    setError(null);
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       setProductsLoading(false);
       router.push("/login");
       return;
@@ -55,7 +55,7 @@ export default function POSPage() {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again.");
+        showSnackbar("Unauthorized. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
@@ -65,7 +65,7 @@ export default function POSPage() {
       setProducts(data)
     } catch (err: any) {
       console.error("Failed to fetch products", err)
-      setError(err.message || "Failed to fetch products.");
+      showSnackbar(err.message || "Failed to fetch products.", "error");
     } finally {
       setProductsLoading(false);
     }
@@ -82,7 +82,10 @@ export default function POSPage() {
       const exists = prev.find((item) => item.productId === product._id)
       if (exists) {
         const newQuantity = exists.quantity + 1;
-        if (newQuantity > product.stock) return prev;
+        if (newQuantity > product.stock) {
+          showSnackbar(`Cannot add more than available stock (${product.stock}).`, "warning");
+          return prev;
+        }
 
         return prev.map((item) =>
           item.productId === product._id
@@ -94,7 +97,10 @@ export default function POSPage() {
             : item
         )
       }
-      if (product.stock < 1) return prev; 
+      if (product.stock < 1) {
+        showSnackbar("This product is out of stock.", "warning");
+        return prev;
+      }
       return [
         ...prev,
         {
@@ -137,12 +143,14 @@ export default function POSPage() {
   const total = subtotal + tax
 
   const handleCheckout = async () => {
-    if (!cart.length) return
+    if (!cart.length) {
+      showSnackbar("Your cart is empty. Add some products to checkout.", "warning");
+      return;
+    }
     setLoading(true)
-    setError(null);
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       setLoading(false);
       router.push("/login");
       return;
@@ -166,7 +174,7 @@ export default function POSPage() {
         }),
       })
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized. Please log in again during checkout.");
+        showSnackbar("Unauthorized. Please log in again during checkout.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
@@ -176,12 +184,10 @@ export default function POSPage() {
         throw new Error(errorData.message || "Failed to create order");
       }
       setCart([])
-      alert("Order placed successfully!")
+      showSnackbar("Order placed successfully!", "success");
       fetchProducts(); 
     } catch (err: any) {
-      console.error("Checkout failed", err)
-      setError(`Checkout failed: ${err.message}`);
-      alert(`Checkout failed: ${err.message}`); 
+      showSnackbar(`Checkout failed: ${err.message}`, "error");
     } finally {
       setLoading(false)
     }
@@ -244,11 +250,6 @@ export default function POSPage() {
                   Process sales quickly and efficiently
                 </p>
               </div>
-              {error && !loading && ( 
-                  <div style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(239, 68, 68, 0.8)", border: "1px solid #ef4444", color: "white", padding: "10px 15px", borderRadius: "8px", zIndex: 100 }}>
-                      Error: {error}
-                  </div>
-              )}
             </motion.div>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay: 0.1}}>
               <div style={{ position: "relative" }}>

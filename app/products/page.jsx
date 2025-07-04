@@ -8,6 +8,7 @@ import {
 import { useRouter } from "next/navigation"
 import Layout from "../components/Layout"
 import ProductViewDialog from "../components/ProductViewDialog" 
+import { useSnackbar } from "../../context/SnackbarContext"
 import BarcodePreview from "../components/BarcodePreview"
 
 export default function ProductsPage() {
@@ -18,9 +19,9 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState("grid")
   const [sortBy, setSortBy] = useState("name")
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedProductForView, setSelectedProductForView] = useState(null);
+  const { showSnackbar } = useSnackbar();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
 
@@ -38,10 +39,9 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      setError(null);
       const token = localStorage.getItem("accessToken")
       if (!token) {
-        setError("Authorization token not found. Please log in.");
+        showSnackbar("Authorization token not found. Please log in.", "error");
         setLoading(false);
         router.push("/login");
         return;
@@ -54,7 +54,7 @@ export default function ProductsPage() {
       })
       
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized to fetch products. Please log in again.");
+        showSnackbar("Unauthorized to fetch products. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         setLoading(false);
@@ -66,23 +66,23 @@ export default function ProductsPage() {
       } else {
         const errorData = await res.json().catch(() => ({ message: "Failed to fetch products" }));
         console.error("Failed to fetch products", errorData.message || res.statusText);
-        setError(errorData.message || `Failed to fetch products: ${res.statusText}`);
+        showSnackbar(errorData.message || `Failed to fetch products: ${res.statusText}`, "error");
         setProducts([]) 
       }
       setLoading(false);
     }
     fetchProducts().catch(err => {
       console.error("Fetch products error:", err);
-      setError(err.message || "An unexpected error occurred.");
+      showSnackbar(err.message || "An unexpected error occurred.", "error");
       setLoading(false);
     });
-  }, [router, API_BASE]) 
+  }, [router, API_BASE, showSnackbar]) 
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this product?")) return
     const token = localStorage.getItem("accessToken")
     if (!token) {
-      alert("Authorization token not found. Please log in.");
+      showSnackbar("Authorization token not found. Please log in.", "error");
       router.push("/login");
       return;
     }
@@ -94,16 +94,16 @@ export default function ProductsPage() {
         },
       })
       if (res.status === 401 || res.status === 403) {
-        alert("Unauthorized to delete product. Please log in again.");
+        showSnackbar("Unauthorized to delete product. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login");
         return;
       }
       if (!res.ok) throw new Error("Delete failed")
       setProducts((prev) => prev.filter((p) => p._id !== id))
-      alert("Deleted successfully")
+      showSnackbar("Product deleted successfully", "success")
     } catch (err) {
-      alert("Error deleting product")
+      showSnackbar("Error deleting product", "error")
       console.error(err)
     }
   }
@@ -265,10 +265,6 @@ export default function ProductsPage() {
             </button>
           </div>
         </div>
-
-        {error && (
-          <div style={{ background: "rgba(239, 68, 68, 0.2)", border: "1px solid #ef4444", color: "#ef4444", padding: "12px", borderRadius: "12px", marginBottom: "24px", textAlign: "center" }}>{error}</div>
-        )}
 
         <div
           style={{

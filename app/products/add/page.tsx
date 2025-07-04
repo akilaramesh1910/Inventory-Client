@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { ArrowLeft, Save, Package, DollarSign, Hash,  } from "lucide-react"
 import Layout from "../../components/Layout" 
+import { useSnackbar } from "../../../context/SnackbarContext"
 
 const categories = ["Electronics", "Grocery", "Apparel", "Accessories", "Fitness", "Home & Garden", "Books", "Sports"]
 const units = ["pcs", "kg", "lbs", "liters", "meters", "boxes", "packs"]
@@ -13,6 +14,7 @@ export default function AddProductPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productId = searchParams.get("id")
+  const { showSnackbar } = useSnackbar()
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,7 +26,6 @@ export default function AddProductPage() {
     unit: "",
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null); 
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api";
 
@@ -32,14 +33,13 @@ export default function AddProductPage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setError("You are not authorized. Please log in."); 
+      showSnackbar("You are not authorized. Please log in.", "error");
       router.push("/login");
       return;
     }
 
     const fetchProduct = async () => {
       setIsLoading(true);
-      setError(null); 
 
       try {
         const res = await fetch(`${API_BASE}/products/${productId}`, {
@@ -48,7 +48,7 @@ export default function AddProductPage() {
           },
         })
         if (productId && (res.status === 401 || res.status === 403)) {
-          setError("Unauthorized to fetch product. Please log in again.");
+          showSnackbar("Unauthorized to fetch product. Please log in again.", "error");
           localStorage.removeItem("accessToken");
           router.push("/login");
           setIsLoading(false);
@@ -70,7 +70,7 @@ export default function AddProductPage() {
         })
       } catch (err: any) {
         console.error("Error fetching product:", err);
-        setError(err.message || "Could not load product data.");
+        showSnackbar(err.message || "Could not load product data.", "error");
       } finally {
         setIsLoading(false); 
       }
@@ -79,16 +79,15 @@ export default function AddProductPage() {
     if (productId) {
       fetchProduct();
     }
-  }, [productId, API_BASE, router]) 
+  }, [productId, API_BASE, router, showSnackbar]) 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null);
 
     const token = localStorage.getItem("accessToken")
     if (!token) {
-      setError("Authorization token not found. Please log in to save the product.");
+      showSnackbar("Authorization token not found. Please log in to save the product.", "error");
       setIsLoading(false);
       router.push("/login"); 
       return;
@@ -112,7 +111,7 @@ export default function AddProductPage() {
       })
 
       if (res.status === 401 || res.status === 403) {
-        setError("Unauthorized to save product. Please log in again.");
+        showSnackbar("Unauthorized to save product. Please log in again.", "error");
         localStorage.removeItem("accessToken");
         router.push("/login"); 
         throw new Error("Unauthorized to save product.");
@@ -122,12 +121,11 @@ export default function AddProductPage() {
         throw new Error(errorData.message || "Failed to save product");
       }
 
-      alert(productId ? "Product updated successfully!" : "Product added successfully!")
+      showSnackbar(productId ? "Product updated successfully!" : "Product added successfully!", "success");
       router.push("/products")
     } catch (err: any) {
       console.error("Error saving product:", err)
-      setError(err.message || "Error saving product. Please try again.");
-      alert("Error saving product"); 
+      showSnackbar(err.message || "Error saving product. Please try again.", "error");
     } finally {
       setIsLoading(false)
     }
@@ -220,10 +218,6 @@ export default function AddProductPage() {
 
             <div style={{ padding: "24px" }}>
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                {error && (
-                  <div style={{ background: "rgba(239, 68, 68, 0.2)", border: "1px solid #ef4444", color: "#ef4444", padding: "12px", borderRadius: "8px", textAlign: "center" }}>{error}</div>
-                )}
-
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "24px" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <label htmlFor="name" style={{ fontSize: "14px", fontWeight: "500", color: "rgba(255,255,255,0.8)" }}>

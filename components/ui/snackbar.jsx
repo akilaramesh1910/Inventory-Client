@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 
-const snackbar = ({ message, open, onClose, severity = "error", autoHideDuration = 6000 }) => {
+const snackbar = ({ message, open, onClose, severity = "error", autoHideDuration = 3000 }) => {
   useEffect(() => {
     if (open && autoHideDuration) {
       const timer = setTimeout(() => {

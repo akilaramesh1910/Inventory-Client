@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail, Package, Shield, Sparkles, Zap } from "lucide-react"
+import { useSnackbar } from "../../context/SnackbarContext";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -11,10 +12,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [focusedField, setFocusedField] = useState(null)
   const router = useRouter()
+  const { showSnackbar } = useSnackbar();
 
   const API_BASE =  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000/api"
-
-  console.log("API_BASE", API_BASE)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,7 +37,7 @@ export default function LoginPage() {
       }
       router.push("/")
     } catch (error) {
-      console.error(error)
+      showSnackbar(error.message || "An unexpected error occurred.", "error");
     }
     setIsLoading(false)
   }
